@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from routes import aluno, turma, tutor
+from routes import  turma, tutor
 
 # Configurações de inicialização
 @asynccontextmanager
@@ -13,6 +13,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Rotas para Endpoints
-app.include_router(aluno.router)
+
 app.include_router(tutor.router)
 app.include_router(turma.router)

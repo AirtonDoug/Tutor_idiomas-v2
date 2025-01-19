@@ -15,8 +15,7 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 # Configuração do banco de dados
 engine = create_engine(os.getenv("DATABASE_URL"))
 
-# Importar todos os modelos para garantir que as tabelas sejam registradas
-from models import aluno, turma, tutor
+
 
 # Criar a(s) tabela(s) no banco de dados
 def create_db_and_tables() -> None:

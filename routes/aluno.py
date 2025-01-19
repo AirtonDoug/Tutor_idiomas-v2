@@ -4,8 +4,8 @@ from models.aluno import Aluno
 from database import get_session
 
 router = APIRouter(
-    prefix="/alunos",  # Prefixo para todas as rotas
-    tags=["Alunos"],   # Tag para documentação automática
+    prefix="/alunos", 
+    tags=["Alunos"], 
 )
 
 # Alunos

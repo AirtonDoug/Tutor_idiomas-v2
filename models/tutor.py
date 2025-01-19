@@ -1,15 +1,14 @@
-from typing import TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
-
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .turma import Turma
+    from .aluno import Aluno
 
-class TutorBase(SQLModel, table=True):
+class TutorBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-    nome: str
+    name: str
     email: str
-    senha: str
-    lingua: str
 
 class Tutor(TutorBase, table=True):
-    turma: list['Turma'] = Relationship(back_populates="tutor")
+    turmas: list['Turma'] = Relationship(back_populates="tutor")
+    alunos: list['Aluno'] = Relationship(back_populates="tutor")
