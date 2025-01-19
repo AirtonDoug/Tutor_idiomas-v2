@@ -45,6 +45,21 @@ def update_turma(turma_id: int, turma: Turma, session: Session = Depends(get_ses
     session.refresh(db_turma)
     return db_turma
 
+# retornar tutor e nivel da turma pelo nome da turma
+@router.get("/nome/{nome_turma}", response_model=dict)
+def get_tutor_and_nivel_by_nome_turma(nome_turma: str, session: Session = Depends(get_session)):
+    turma = session.exec(select(Turma).where(Turma.nome == nome_turma).options(joinedload(Turma.tutor))).first()
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma not found")
+    return {"tutor": turma.tutor.name, "lingua": turma.tutor.lingua, "nivel": turma.nivel}
+
+# Quantidade total de alunos em uma turma
+@router.get("/{turma_id}/alunos/quantidade", response_model=dict)
+def get_total_alunos_for_turma(turma_id: int, session: Session = Depends(get_session)):
+    total_alunos = len(session.exec(select(Aluno).where(Aluno.turma_id == turma_id)).all())
+    return {"total_alunos": total_alunos}
+
+
 @router.delete("/{turma_id}")
 def delete_turma(turma_id: int, session: Session = Depends(get_session)):
     turma = session.get(Turma, turma_id)
@@ -67,6 +82,23 @@ def create_aluno_for_turma(turma_id: int, aluno: Aluno, session: Session = Depen
 def read_alunos_for_turma(turma_id: int, session: Session = Depends(get_session)):
     return session.exec(select(Aluno).where(Aluno.turma_id == turma_id)).all()
 
+@router.get("/aluno/{aluno_id}", response_model=Aluno)
+def read_aluno_by_id(aluno_id: int, session: Session = Depends(get_session)):
+    aluno = session.get(Aluno, aluno_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno not found")
+    return aluno
+
+
+# Buscar alunos por texto parcial
+@router.get("/alunos/busca", response_model=list[Aluno])
+def search_alunos(texto: str, session: Session = Depends(get_session)):
+    statement = select(Aluno).where(Aluno.nome.contains(texto))
+    alunos = session.exec(statement).all()
+    if not alunos:
+        raise HTTPException(status_code=404, detail="No alunos found")
+    return alunos
+
 @router.put("/{turma_id}/alunos/{aluno_id}", response_model=Aluno)
 def update_aluno_for_turma(turma_id: int, aluno_id: int, aluno: Aluno, session: Session = Depends(get_session)):
     db_aluno = session.get(Aluno, aluno_id)
@@ -80,6 +112,7 @@ def update_aluno_for_turma(turma_id: int, aluno_id: int, aluno: Aluno, session: 
     session.refresh(db_aluno)
     return db_aluno
 
+
 @router.delete("/{turma_id}/alunos/{aluno_id}")
 def delete_aluno_for_turma(turma_id: int, aluno_id: int, session: Session = Depends(get_session)):
     aluno = session.get(Aluno, aluno_id)
@@ -88,6 +121,30 @@ def delete_aluno_for_turma(turma_id: int, aluno_id: int, session: Session = Depe
     session.delete(aluno)
     session.commit()
     return {"ok": True}
+
+@router.put("/{aluno_id}/trocar-turma", response_model=Aluno)
+def trocar_turma_de_aluno(
+    aluno_id: int,
+    nova_turma_id: int,
+    session: Session = Depends(get_session),
+):
+    db_aluno = session.get(Aluno, aluno_id)
+    if not db_aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    nova_turma = session.get(Turma, nova_turma_id)
+    if not nova_turma:
+        raise HTTPException(status_code=404, detail="Nova turma não encontrada")
+
+
+    db_aluno.turma_id = nova_turma_id
+
+    session.add(db_aluno)
+    session.commit()
+    session.refresh(db_aluno)
+
+    return db_aluno
+
 
 # Conversations
 @router.post("/{turma_id}/conversations/", response_model=Conversation)
@@ -109,6 +166,25 @@ def create_conversation_for_turma(turma_id: int, conversation: Conversation, ses
 def read_conversations_for_turma(turma_id: int, session: Session = Depends(get_session)):
     statement = select(Conversation).join(TurmaConversation).where(TurmaConversation.turma_id == turma_id)
     return session.exec(statement).all()
+
+
+# Filtros por data/ano para Conversation
+@router.get("/{turma_id}/conversations/data", response_model=list[Conversation])
+def get_conversations_por_intervalo(
+    turma_id: int,
+    start_date: datetime, 
+    end_date: datetime, 
+    session: Session = Depends(get_session)
+):
+    statement = select(Conversation).join(TurmaConversation).where(
+        TurmaConversation.turma_id == turma_id,
+        Conversation.data_horario >= start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        Conversation.data_horario <= end_date.strftime("%Y-%m-%d %H:%M:%S")
+    )
+    conversations = session.exec(statement).all()
+    if not conversations:
+        raise HTTPException(status_code=404, detail="No conversations found in this date range for the specified turma")
+    return conversations
 
 @router.put("/{turma_id}/conversations/{conversation_id}", response_model=Conversation)
 def update_conversation_for_turma(turma_id: int, conversation_id: int, conversation: Conversation, session: Session = Depends(get_session)):

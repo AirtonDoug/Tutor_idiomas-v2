@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+
 from sqlmodel import SQLModel, Field, Relationship
 from .tutor import Tutor, TutorBase
 from typing import TYPE_CHECKING
@@ -7,9 +7,12 @@ if TYPE_CHECKING:
 
 class AlunoBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-    content: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    nome: str
+    email: str
+    senha: str
+    nickname: str
+    
+
 
 class Aluno(AlunoBase, table=True):
     turma_id: int = Field(foreign_key="turma.id")

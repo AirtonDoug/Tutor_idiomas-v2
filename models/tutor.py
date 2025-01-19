@@ -8,6 +8,7 @@ class TutorBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     email: str
+    lingua: str
 
 class Tutor(TutorBase, table=True):
     turmas: list['Turma'] = Relationship(back_populates="tutor")

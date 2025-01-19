@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlmodel import Session, select
 from models.tutor import Tutor
+from models.turma import Turma
+from models.aluno import Aluno
 from database import get_session
 
 router = APIRouter(
@@ -48,3 +50,21 @@ def delete_tutor(tutor_id: int, session: Session = Depends(get_session)):
     session.delete(tutor)
     session.commit()
     return {"ok": True}
+
+# Obter todas as turmas de um tutor específico
+@router.get("/{tutor_id}/turmas", response_model=list[Turma])
+def get_turmas_por_tutor(tutor_id: int, session: Session = Depends(get_session)):
+    statement = select(Turma).where(Turma.tutor_id == tutor_id)
+    turmas = session.exec(statement).all()
+    if not turmas:
+        raise HTTPException(status_code=404, detail="No turmas found for this tutor")
+    return turmas
+
+# Obter todos os alunos de um tutor específico
+@router.get("/{tutor_id}/alunos", response_model=list[Aluno])
+def get_alunos_por_tutor(tutor_id: int, session: Session = Depends(get_session)):
+    statement = select(Aluno).join(Turma).where(Turma.tutor_id == tutor_id)
+    alunos = session.exec(statement).all()
+    if not alunos:
+        raise HTTPException(status_code=404, detail="No alunos found for this tutor")
+    return alunos

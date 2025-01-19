@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+
 from sqlmodel import SQLModel, Field, Relationship
 from .tutor import Tutor, TutorBase
 from .aluno import Aluno, AlunoBaseWithTutor
@@ -10,10 +10,9 @@ class TurmaConversation(SQLModel, table=True):
 
 class TurmaBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-    title: str
-    content: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    nome: str
+    nivel: str
+
 
 class Turma(TurmaBase, table=True):
     tutor_id: int = Field(foreign_key="tutor.id")
