@@ -1,0 +1,13 @@
+Dvisão de tarefas:
+
+Marcos Vinicius:
+	-Modelagem do banco
+	-Criação dos Models
+	-Criação das Rotas básicas
+	-Configuração Database
+
+Airton Douglas:
+	- Refinamento dos Endpoints
+	- Criação de contagens e filtros
+	- Consultas Avançadas
+	- Agregações e contagens
