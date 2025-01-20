@@ -47,6 +47,21 @@ def delete_tutor(tutor_id: int, session: Session = Depends(get_session)):
     tutor = session.get(Tutor, tutor_id)
     if not tutor:
         raise HTTPException(status_code=404, detail="Tutor not found")
+    
+    with session.no_autoflush:
+        # Atualizar os alunos associados para remover a referência ao tutor
+        alunos = session.exec(select(Aluno).where(Aluno.tutor_id == tutor_id)).all()
+        for aluno in alunos:
+            aluno.tutor_id = None
+            session.add(aluno)
+        
+        # Atualizar as turmas associadas para remover a referência ao tutor
+        turmas = session.exec(select(Turma).where(Turma.tutor_id == tutor_id)).all()
+        for turma in turmas:
+            turma.tutor_id = None
+            session.add(turma)
+            
+    session.flush() # Garantir que todas as atualizações sejam "flushadas" antes de deletar o tutor
     session.delete(tutor)
     session.commit()
     return {"ok": True}

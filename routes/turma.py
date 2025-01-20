@@ -79,8 +79,8 @@ def create_aluno_for_turma(turma_id: int, aluno: Aluno, session: Session = Depen
     return aluno
 
 @router.get("/{turma_id}/alunos/", response_model=list[Aluno])
-def read_alunos_for_turma(turma_id: int, session: Session = Depends(get_session)):
-    return session.exec(select(Aluno).where(Aluno.turma_id == turma_id)).all()
+def read_alunos_for_turma(turma_id: int, offset: int = 0, limit: int = Query(default=10, le=100), session: Session = Depends(get_session)):
+    return session.exec(select(Aluno).where(Aluno.turma_id == turma_id).offset(offset).limit(limit)).all()
 
 @router.get("/aluno/{aluno_id}", response_model=Aluno)
 def read_aluno_by_id(aluno_id: int, session: Session = Depends(get_session)):
